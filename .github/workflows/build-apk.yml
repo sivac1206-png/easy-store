@@ -19,16 +19,26 @@ jobs:
           flutter-version: '3.35.0'
           channel: stable
 
-      - name: Install dependencies
-        working-directory: easy_store
-        run: flutter pub get
+      - name: Extract Flutter source
+        run: |
+          unzip -q easy_store_flutter_source.zip -d flutter_source
+
+      - name: Find Flutter project
+        run: |
+          PROJECT_DIR=$(dirname "$(find flutter_source -name pubspec.yaml -print -quit)")
+          echo "Flutter project: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          flutter pub get
 
       - name: Build APK
-        working-directory: easy_store
-        run: flutter build apk --release
+        run: |
+          PROJECT_DIR=$(dirname "$(find flutter_source -name pubspec.yaml -print -quit)")
+          cd "$PROJECT_DIR"
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk "$GITHUB_WORKSPACE/easy-store-release.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Easy-Store-APK
-          path: easy_store/build/app/outputs/flutter-apk/app-release.apk
+          path: easy-store-release.apk
